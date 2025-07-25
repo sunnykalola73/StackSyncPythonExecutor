@@ -42,7 +42,6 @@ COPY validator.py .
 COPY sandbox.py .
 COPY exceptions.py .
 COPY entrypoint.sh .
-COPY seccomp_profile.json /usr/local/etc/seccomp_profile.json
 
 # Make entrypoint script executable
 RUN chmod +x entrypoint.sh
