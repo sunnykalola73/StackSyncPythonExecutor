@@ -18,15 +18,23 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install nsjail from source
+# Install nsjail from source with specific configuration for Cloud Run
 RUN git clone https://github.com/google/nsjail.git /tmp/nsjail \
     && cd /tmp/nsjail \
     && make \
     && cp nsjail /usr/local/bin/ \
+    && chmod +sx /usr/local/bin/nsjail \
     && rm -rf /tmp/nsjail
 
-# Create app directory
+# Set up sandbox environment
+RUN mkdir -p /tmp/sandbox && \
+    chmod 777 /tmp/sandbox && \
+    mkdir -p /sys/fs/cgroup && \
+    chmod 777 /sys/fs/cgroup
+
+# Create app directory and set permissions
 WORKDIR /app
+RUN chmod 777 /app
 
 # Copy requirements first for better caching
 COPY requirements.txt .

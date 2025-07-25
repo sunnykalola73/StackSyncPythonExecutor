@@ -99,15 +99,19 @@ print(json.dumps(response, default=str))
             '--rlimit_cpu', '10',
             '--rlimit_fsize', '64',
             '--rlimit_nofile', '128',
-            # Disable all namespaces for Cloud Run compatibility
+            # Disable all unnecessary features for Cloud Run compatibility
             '--disable_clone_newuser',
-            '--disable_clone_newnet', 
+            '--disable_clone_newnet',
             '--disable_clone_newns',
             '--disable_clone_newpid',
             '--disable_clone_newipc',
             '--disable_clone_newuts',
             '--disable_clone_newcgroup',
+            '--disable_proc',
             '--skip_setsid',
+            '--use_preload',
+            '--keep_caps',  # Keep capabilities
+            '--disable_rlimits',  # Disable resource limits that might cause issues
             '--verbose',  # Enable verbose logging for debugging
             '--env', 'HOME=/tmp',
             '--env', 'PATH=/usr/local/bin:/usr/bin:/bin',
