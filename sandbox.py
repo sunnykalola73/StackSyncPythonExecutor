@@ -3,15 +3,19 @@ Simple sandbox execution for Python code using nsjail.
 """
 
 import json
+import logging
+import os
 import subprocess
 from typing import Dict, Any
 from config import get_config
 
 config = get_config()
+logger = logging.getLogger(__name__)
 
 
 def execute_code_with_nsjail(code: str) -> Dict[str, Any]:
     """Execute code with nsjail - simplified approach without config files."""
+    logger.info("Starting code execution with nsjail")
     
     # Create wrapper code inline (no separate files)  
     wrapper_code = f'''
@@ -66,8 +70,28 @@ print(json.dumps(response, default=str))
 '''
     
     try:
+        # Verify nsjail exists and is executable
+        if not os.path.exists('/usr/local/bin/nsjail'):
+            logger.error("nsjail binary not found at /usr/local/bin/nsjail")
+            return {
+                'success': False,
+                'error': 'nsjail binary not found',
+                'stdout': '',
+                'stderr': 'System configuration error: nsjail not installed'
+            }
+        
+        # Log nsjail version
+        try:
+            version_result = subprocess.run(['nsjail', '--version'], 
+                capture_output=True, text=True)
+            logger.info(f"nsjail version: {version_result.stdout.strip()}")
+        except Exception as e:
+            logger.warning(f"Failed to get nsjail version: {str(e)}")
+        
+        logger.info("Preparing to execute code in nsjail sandbox")
+        
         # Use command line flags instead of config file - much simpler and more reliable
-        result = subprocess.run([
+        cmd = [
             'nsjail',
             '--mode', 'o',  # once
             '--time_limit', str(config.EXECUTION_TIMEOUT),
@@ -75,7 +99,7 @@ print(json.dumps(response, default=str))
             '--rlimit_cpu', '10',
             '--rlimit_fsize', '64',
             '--rlimit_nofile', '128',
-            # Disable all namespaces for Docker compatibility
+            # Disable all namespaces for Cloud Run compatibility
             '--disable_clone_newuser',
             '--disable_clone_newnet', 
             '--disable_clone_newns',
@@ -84,24 +108,38 @@ print(json.dumps(response, default=str))
             '--disable_clone_newuts',
             '--disable_clone_newcgroup',
             '--skip_setsid',
-            '--really_quiet',
+            '--verbose',  # Enable verbose logging for debugging
             '--env', 'HOME=/tmp',
             '--env', 'PATH=/usr/local/bin:/usr/bin:/bin',
             '--env', 'PYTHONPATH=/usr/local/lib/python3.11/site-packages',
             '--env', 'LD_LIBRARY_PATH=/usr/local/lib:/usr/lib:/lib',
             '--',
             '/usr/local/bin/python3', '-c', wrapper_code
-        ], 
-        capture_output=True, 
-        text=True, 
-        timeout=config.EXECUTION_TIMEOUT + 5
+        ]
+        
+        logger.info(f"Executing nsjail command with arguments: {' '.join(cmd)}")
+        
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=config.EXECUTION_TIMEOUT + 5
         )
         
         # Check if nsjail execution failed
         if result.returncode != 0:
+            logger.error(f"nsjail execution failed with return code {result.returncode}")
+            logger.error(f"nsjail stdout: {result.stdout}")
+            logger.error(f"nsjail stderr: {result.stderr}")
+            
+            error_msg = "Code execution failed in sandbox"
+            if result.returncode == 255:
+                error_msg = "Failed to create process in Cloud Run environment. Please check container permissions and system resources."
+            
             return {
                 'success': False,
-                'error': f'nsjail failed with return code {result.returncode}',
+                'error': error_msg,
+                'details': f'nsjail failed with return code {result.returncode}',
                 'stdout': result.stdout,
                 'stderr': result.stderr
             }
