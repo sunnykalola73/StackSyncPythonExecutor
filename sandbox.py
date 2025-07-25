@@ -84,7 +84,7 @@ print(json.dumps(response, default=str))
             '--disable_clone_newuts',
             '--disable_clone_newcgroup',
             '--skip_setsid',
-            '--really_quiet',
+            '--verbose',
             '--env', 'HOME=/tmp',
             '--env', 'PATH=/usr/local/bin:/usr/bin:/bin',
             '--env', 'PYTHONPATH=/usr/local/lib/python3.11/site-packages',
