@@ -101,5 +101,3 @@ gcloud run deploy python-executor \
   --cpu 1 \
   --timeout 60s
 ```
-
-test
