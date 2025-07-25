@@ -66,25 +66,21 @@ print(json.dumps(response, default=str))
 '''
     
     try:
-        # Use command line flags instead of config file - much simpler and more reliable
+        # Use absolute minimal command line flags for Cloud Run compatibility
         result = subprocess.run([
             'nsjail',
             '--mode', 'o',  # once
             '--time_limit', str(config.EXECUTION_TIMEOUT),
-            '--rlimit_as', '1024',  # 1GB memory
-            '--rlimit_cpu', '10',
-            '--rlimit_fsize', '64',
-            '--rlimit_nofile', '128',
-            # Disable all namespaces for Docker compatibility
-            '--disable_clone_newuser',
-            '--disable_clone_newnet', 
-            '--disable_clone_newns',
-            '--disable_clone_newpid',
-            '--disable_clone_newipc',
-            '--disable_clone_newuts',
-            '--disable_clone_newcgroup',
-            '--skip_setsid',
-            '--verbose',
+            '--disable_clone_newuser',  # Required for Cloud Run
+            '--disable_clone_newns',  # Disable all namespace isolation
+            '--disable_clone_newnet',  # Disable network isolation
+            '--disable_clone_newpid',  # Disable PID namespace
+            '--disable_clone_newipc',  # Disable IPC namespace
+            '--disable_clone_newuts',  # Disable UTS namespace
+            '--disable_clone_newcgroup',  # Disable cgroup namespace
+            '--disable_proc',  # Disable procfs
+            '--disable_rlimits',  # Disable resource limits
+            '--cwd', '/tmp',  # Set working directory
             '--env', 'HOME=/tmp',
             '--env', 'PATH=/usr/local/bin:/usr/bin:/bin',
             '--env', 'PYTHONPATH=/usr/local/lib/python3.11/site-packages',
