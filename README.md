@@ -2,6 +2,8 @@
 
 A Flask-based API service that securely executes arbitrary Python code using nsjail for sandboxing.
 
+> Note: The app is hosted on GCP url(`https://stacksyncpyexecutor-937218647185.us-west1.run.app`)
+
 ## API Endpoints
 
 ### POST /execute
@@ -71,7 +73,7 @@ chmod +x docker-run.sh
 ### Example Usage
 
 ```bash
-curl -X POST http://localhost:8080/execute \
+curl -X POST https://stacksyncpyexecutor-937218647185.us-west1.run.app/execute \
   -H "Content-Type: application/json" \
   -d '{
     "script": "def main():\n    print('Executing Hello World script')\n    return {'message': 'Hello World', 'status': 'success'}"
