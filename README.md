@@ -73,12 +73,12 @@ chmod +x docker-run.sh
 ### Example Usage
 
 #### Example-1
-```bash
-curl -X POST https://python-executor-378957403805.us-central1.run.app/execute \
-  -H "Content-Type: application/json" \
-  -d '{
-    "script": "def main():\n    print('Executing Hello World script')\n    return {'message': 'Hello World', 'status': 'success'}"
-  }'
+```
+curl --location 'https://python-executor-378957403805.us-central1.run.app/execute' \
+--header 'Content-Type: application/json' \
+--data '{
+    "script": "def main():\n    print('\''Executing Hello World script'\'')\n    return {'\''message'\'': '\''Hello World'\'', '\''status'\'': '\''success'\''}"
+}'
 ```
 #### Example-2
 ```
